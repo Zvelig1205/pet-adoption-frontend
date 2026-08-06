@@ -1,9 +1,15 @@
 import request from "../utils/request";
 
-export function getUnadoptedPets() {
+export function getUnadoptedPets(page, size) {
 
     return request.get(
-        "/pets/hall"
+        "/pets/hall",
+        {
+            params: {
+                page: page,
+                size: size
+            }
+        }
     );
 
 }
@@ -16,10 +22,16 @@ export function getPetById(id) {
 
 }
 
-export function getMyPets() {
+export function getMyPets(page, size) {
 
     return request.get(
-        "/users/my/pets"
+        "/users/my/pets",
+        {
+            params: {
+                page: page,
+                size: size
+            }
+        }
     );
 
 }
