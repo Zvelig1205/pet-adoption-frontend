@@ -1,85 +1,87 @@
 
 <script setup>
-
 import { onMounted, ref } from 'vue';
 import { abandonPet, getMyPets } from '../api/pet';
 
 import router from '../router/index';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 const petList = ref([]);
 const page = ref(1);
 const size = ref(10);
 const total = ref();
 
-const totalPage = ref();
+async function loadMyPets() {
+
+    try{
+
+        const res = await getMyPets(
+            page.value,
+            size.value
+        );
+
+        updateView(res.data.data);
+
+    } catch {
+        ElMessage.error("请求失败");        
+    }
+        
+}
 
 function updateView(res) {
     petList.value = res.records;
 
     total.value = res.total;
-    page.value = res.page;
-    size.value = res.size;
-
-    totalPage.value =Math.max(1, Math.ceil(total.value / size.value));
-
 }
 
-onMounted(async () =>  {
-
-    const res = await getMyPets();
-
-    console.log(res);
-
-    updateView(res.data.data);
-
+onMounted(() => {
+    loadMyPets();
 })
 
 function details(id) {
-    router.push(`/my/pet/${id}`)
+    router.push(`/my/pet/${id}`);
 }
 
 async function abandon(id) {
-    const res = await abandonPet(id);
 
-    console.log(res);
+    try {
+            
+        await ElMessageBox.confirm(
+            "确定放弃领养吗？",
+            "提示",
+            {
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                type: "warning"
+            }
+        );
 
-    alert(res.data.data);
+        const res = await abandonPet(id);
 
-    const newList = await getMyPets();
+        ElMessage.success(res.data.data);
 
-    updateView(newList.data.data);
-
-}
-
-async function handleChange() {
-
-    const res = await getMyPets(1, size.value);
-
-    updateView(res.data.data);
-}
-
-async function prevPage() {
-
-    if (page.value === 1) {
-        alert("没有了");
-    } else {
-        const res = await getMyPets(page.value - 1, size.value);
-
-        updateView(res.data.data);
+        loadMyPets();
+        
+    } catch {
+        ElMessage.info("已取消弃养");
     }
 
 }
 
-async function nextPage() {
+async function handleCurrentChange(newPage) {
 
-    if (page.value === totalPage.value) {
-        alert("没有了");
-    } else {
-        const res = await getMyPets(page.value + 1, size.value);
+    page.value = newPage;
 
-        updateView(res.data.data);
-    }
+    loadMyPets();
 
+}
+
+async function handleSizeChange(newSize) {
+
+    size.value = newSize;
+    page.value = 1;
+
+    loadMyPets();
 }
 
 </script>
@@ -87,50 +89,37 @@ async function nextPage() {
 
 <template>
 
-    <h1>我的宠物</h1>
+    <el-card class="my-pet">
+        <template #header>
+            <div>我的宠物</div>
+        </template>
 
+        <el-table :data="petList" border>
 
-    <ul>
-        <li v-for="pet in petList">
+            <el-table-column prop="id" label="编号" width="80"/>
+            <el-table-column prop="name" label="名字"/>
+            <el-table-column prop="type" label="类型"/>
+            <el-table-column prop="age" label="年龄"/>
 
-            宠物编号：{{ pet.id }}号<br>
-            宠物姓名：{{ pet.name }}<br>
-            宠物类型：{{ pet.type }}<br>
-            宠物年龄：{{ pet.age }}<br><br>
+            <el-table-column label="操作" width="150">
+                <template #default="scope">
+                    <el-button size="small" @click="details(scope.row.id)">查看</el-button>
+                    <el-button size="small" type="danger" @click="abandon(scope.row.id)">弃养</el-button>
+                </template>
+            </el-table-column>
 
-            <button @click="details(pet.id)">查看</button>
-            <button @click="abandon(pet.id)">弃养</button>
+        </el-table>
 
-        </li>
-    </ul>
+        <el-pagination
+            v-model:current-page="page"
+            v-model:page-size="size"
+            :page-sizes="[1,2,5,10,20,50,100]"
+            :total="total"
+            layout="prev, pager, next, sizes, total"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+        />
 
-    <p>当前页面为第 {{ page }} 页，共 {{ totalPage }} 页</p>
-
-    <button @click="prevPage">上一页</button>
-
-    <button @click="nextPage">下一页</button>
-  
-    <p>每页有
-    <select v-model="size" @change="handleChange">
-        <option :value="1">1</option>
-        <option :value="2">2</option>
-        <option :value="5">5</option>
-        <option :value="10">10</option>
-        <option :value="20">20</option>
-        <option :value="50">50</option>
-        <option :value="100">100</option>
-
-    </select>
-    项</p>
-
-
-{{ page }}
-
-{{ total }}
-
-{{ size }}
-
-{{ totalPage }}
-
+    </el-card>
     
 </template>

@@ -4,33 +4,38 @@ import { onMounted, ref } from 'vue';
 import { adoptPet, getUnadoptedPets } from '../api/pet';
 
 import router from '../router/index';
-
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 const petList = ref([]);
 const page = ref(1);
 const size = ref(10);
 const total = ref();
 
-const totalPage = ref();
+async function loadPets() {
+
+    try {
+            
+        const res = await getUnadoptedPets(
+            page.value,
+            size.value
+        )
+
+        updateView(res.data.data);
+
+    } catch {
+        ElMessage.error("请求失败");
+    }
+
+}
 
 function updateView(res) {
     petList.value = res.records;
 
     total.value = res.total;
-    page.value = res.page;
-    size.value = res.size;
-
-    totalPage.value =Math.max(1, Math.ceil(total.value / size.value));
-
 }
 
-onMounted(async () => {
-    const res = await getUnadoptedPets();
-
-    console.log(res);
-
-    updateView(res.data.data);
-
+onMounted(() => {
+    loadPets();
 });
 
 function details(id) {
@@ -38,87 +43,84 @@ function details(id) {
 }
 
 async function adopt(id) {
-    const res = await adoptPet(id);
 
-    console.log(res);
+    try {
 
-    alert(res.data.data);
+        await ElMessageBox.confirm(
+            "确定领养该宠物吗？",
+            "提示",
+            {
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                type: "warning"
+            }
+        )
 
-    const newList = await getUnadoptedPets();
+        const res = await adoptPet(id);
 
-    updateView(newList.data.data);
+        ElMessage.success(res.data.data);
 
-}
-
-async function handleChange() {
-
-    const res = await getUnadoptedPets(1, size.value);
-
-    updateView(res.data.data);
-}
-
-async function prevPage() {
-
-    if (page.value === 1) {
-        alert("没有了");
-    } else {
-        const res = await getUnadoptedPets(page.value - 1, size.value);
-
-        updateView(res.data.data);
+        loadPets();
+        
+    } catch {
+        ElMessage.info("已取消领养");
     }
-
 }
 
-async function nextPage() {
+function handleCurrentChange(newPage) {
 
-    if (page.value === totalPage.value) {
-        alert("没有了");
-    } else {
-        const res = await getUnadoptedPets(page.value + 1, size.value);
+    page.value = newPage;
 
-        updateView(res.data.data);
-    }
-
+    loadPets();
 }
 
+function handleSizeChange(newSize) {
+
+    size.value = newSize;
+    page.value = 1;
+
+    loadPets();
+}
 
 </script>
 
 
-
 <template>
 
-    <h1>宠物广场</h1>
+    <el-card class="pet-hall">
+        
+        <template #header>
+            <div>宠物广场</div>
+        </template>
 
-    <ul>
-        <li v-for="pet in petList">
-            {{ pet }}
+        <el-table :data="petList" border>
 
+            <el-table-column prop="id" label="编号" width="80"/>
+            <el-table-column prop="name" label="名字"/>
+            <el-table-column prop="type" label="类型"/>
+            <el-table-column prop="age" label="年龄"/>
+
+            <el-table-column label="操作" width="150">
+                <template #default="scope">
+                    <el-button size="small" @click="details(scope.row.id)">查看</el-button>
+                    <el-button size="small" type="primary" @click="adopt(scope.row.id)">领养</el-button>
+                </template>
+            </el-table-column>
             
-            <button @click="details(pet.id)">查看</button>
-            <button @click="adopt(pet.id)">领养</button>
-        </li>
-    </ul>
+        </el-table>
 
-    <p>当前页面为第 {{ page }} 页，共 {{ totalPage }} 页</p>
 
-    <button @click="prevPage">上一页</button>
+        <el-pagination
+            v-model:current-page="page"
+            v-model:page-size="size"
+            :page-sizes="[1,2,5,10,20,50,100]"
+            :total="total"
+            layout="prev, pager, next, sizes, total"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+        />
 
-    <button @click="nextPage">下一页</button>
-  
-    <p>每页有
-    <select v-model="size" @change="handleChange">
-        <option :value="1">1</option>
-        <option :value="2">2</option>
-        <option :value="5">5</option>
-        <option :value="10">10</option>
-        <option :value="20">20</option>
-        <option :value="50">50</option>
-        <option :value="100">100</option>
-
-    </select>
-    项</p>
-
+    </el-card>
 
     
 </template>

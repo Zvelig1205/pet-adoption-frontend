@@ -4,6 +4,7 @@ import { ref } from 'vue';
 
 import router from '../router/index';
 import { login } from '../api/user';
+import { ElNotification } from 'element-plus';
 
 const username = ref("");
 
@@ -11,39 +12,43 @@ const password = ref("");
 
 async function handleLogin() {
 
-    console.log("登录");
+    try {
 
-    const res = await login({
-        username: username.value,
-        password: password.value
-    });
+        const res = await login({
+            username: username.value,
+            password: password.value
+        });
 
-    console.log(res);
+        if (res.data.code !== 200) {
 
-    if (res.data.code !== 200) {
-
-        if (res.data.data) {
-            alert(res.data.message + "，" + res.data.data);
-        } else {
-            alert(res.data.message);
+            ElNotification({
+                type: "error",
+                title: "登录失败",
+                message: res.data.message,
+            });
+            
+            return;
         }
-        return;
+
+        ElNotification({
+            type: "success",
+            message: "登录成功",
+        })
+
+        localStorage.setItem("token", res.data.data.token);
+
+        router.push('/details');
         
+    } catch (error) {
+        ElNotification({
+            type: "error",
+            title: "服务器错误",
+        });
     }
-
-    console.log("登录成功");
-
-    localStorage.setItem("token", res.data.data.token);
-
-    router.push('/details');
 
 }
 
-
-
 function button_register() {
-
-    console.log("点击注册按钮");
 
     //注册界面
     router.push('/register');
@@ -54,33 +59,46 @@ function button_register() {
 
 <template>
 
+    <el-card class="login-card">
 
-    <h1>
-        登录
-    </h1>
+        <h1>登录</h1>
 
-    <form @submit.prevent = "handleLogin">
+        <el-form @submit.prevent = "handleLogin">
 
-        用户名<input type="text" v-model="username"> <br>
-        
-        密码 <input type="password" v-model="password"> <br>
+            <el-form-item label="用户名">
+                <el-input 
+                    v-model="username"
+                    placeholder="请输入用户名"
+                />
+            </el-form-item>
 
-        <button type="submit">登录</button>
+            <el-form-item label="密码">
+                <el-input 
+                    v-model="password"
+                    type="password"
+                    placeholder="请输入密码"
+                    show-password
+                />
+            </el-form-item>
 
-        <button type="button" @click="button_register">注册</button>
-        
-        
-    </form>
+            <el-form-item>
+                <el-button type="primary" native-type="submit">登录</el-button>
 
-    <div>
-
-
-        提示：当前登录用户为{{ username }}
-
-
-    </div>
-
-
+                <el-button @click="button_register">注册</el-button>
+            </el-form-item>
+            
+            
+        </el-form>
+    </el-card>
     
 </template>
 
+<style scoped>
+
+.login-card {
+    width: 400px;
+
+    margin: 100px auto;
+}
+
+</style>

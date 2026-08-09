@@ -3,40 +3,101 @@
 
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { getMyPetDetail, getPetById } from '../api/pet';
+import { getMyPetDetail, abandonPet } from '../api/pet';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import router from '../router';
 
 const route = useRoute();
 
-const id = ref(route.params.id);
+const id = route.params.id;
 
-const pet = ref();
-
-console.log(id.value);
+const pet = ref({});
 
 onMounted(async () => {
 
-    const res = await getMyPetDetail(id.value);
+    try {
 
-    console.log(res);
+        const res = await getMyPetDetail(id);
 
-    pet.value = res.data.data;
+        if (res.data.code !== 200) {
+            ElMessage.error(res.data.message);
+        } else {
+            pet.value = res.data.data;
+        }
+
+    } catch {
+        ElMessage.error("服务器异常");
+    }
         
 })
 
+function goBack() {
+    router.push("/details/pets");
+}
 
+async function abandon(id) {
+
+    try {
+            
+        await ElMessageBox.confirm(
+            "确定放弃领养吗？",
+            "提示",
+            {
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                type: "warning"
+            }
+        );
+
+        const res = await abandonPet(id);
+
+        ElMessage.success(res.data.data);
+
+        router.push("/details/pets");
+
+        
+    } catch (e) {
+        console.log(e);
+        ElMessage.info("已取消弃养");
+    }
+
+}
 
 </script>
 
-
-
 <template>
 
-    <h1>宠物详情</h1>
+    <el-card class="my-details">
 
-    <br>
-    宠物 id：{{ id }}
+        <template #header>
+            <div>宠物详情</div>
+        </template>
 
-    {{ pet }}
+        <el-descriptions title="宠物信息" border :column="1">
 
+            <el-descriptions-item label="姓名">
+                {{ pet.name }}
+            </el-descriptions-item>
+            <el-descriptions-item label="类型">
+                {{ pet.type }}
+            </el-descriptions-item>
+            <el-descriptions-item label="年龄">
+                {{ pet.age }}
+            </el-descriptions-item>
+
+        </el-descriptions>
+
+        <el-button @click="goBack">返回</el-button>
+        <el-button type="danger" @click="abandon(pet.id)">弃养</el-button>
+
+    </el-card>
     
 </template>
+
+<style scoped>
+.my-details {
+    width: 400px;
+
+    margin: 100px auto;
+}
+</style>

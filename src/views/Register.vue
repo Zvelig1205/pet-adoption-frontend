@@ -4,6 +4,7 @@ import { ref } from 'vue';
 import { register } from '../api/user';
 
 import router from '../router/index';
+import { ElNotification } from 'element-plus';
 
 
 
@@ -13,24 +14,37 @@ const password = ref("");
 
 async function handleRegister() {
 
-    console.log("注册");
+    try {
 
-    const res = await register({
-        username: username.value,
-        password: password.value
-    });
+        const res = await register({
+            username: username.value,
+            password: password.value
+        });
 
-    console.log(res);
+        if (res.data.code !== 200) {
 
-    if (res.data.code !== 200) {
-        alert(res.data.message);
-        return;
+            ElNotification({
+                type: "error",
+                title: "注册失败",
+                message: res.data.message,
+            })
+
+            return;
+        }
+
+        ElNotification({
+            type: "success",
+            title: "注册成功",
+        })
+
+        router.push("/login");
+
+    } catch {
+        ElNotification({
+            type: "error",
+            title: "服务器错误",
+        });
     }
-
-    alert("注册成功");
-
-    router.push("/login");
-
 
 }
 
@@ -39,32 +53,44 @@ async function handleRegister() {
 
 <template>
 
+    <el-card class="register-card">
 
-    <h1>
-        注册
-    </h1>
+        <h1>注册</h1>
 
-    <form @submit.prevent = "handleRegister">
+        <el-form @submit.prevent = "handleRegister">
 
-        用户名<input type="text" v-model="username"> <br>
-        
-        密码 <input type="password" v-model="password"> <br>
+            <el-form-item label="用户名">
+                <el-input
+                    v-model="username"
+                    placeholder="请输入用户名"
+                />
+            </el-form-item>
 
-        
+            <el-form-item label="密码">
+                <el-input
+                    v-model="password"
+                    type="password"
+                    placeholder="请输入密码"
+                    show-password
+                />
+            </el-form-item>          
 
-        <button type="submit">注册</button>
-        
-        
-    </form>
+            <el-form-item>
+                <el-button type="primary" native-type="submit">注册</el-button>
+            </el-form-item>
+            
+        </el-form>
 
-    <div>
+    </el-card>
 
-
-        提示：当前注册用户为{{ username }}
-
-
-    </div>
-
-
-    
 </template>
+
+<style scoped>
+
+.register-card {
+    width: 400px;
+
+    margin: 100px auto;
+}
+
+</style>
