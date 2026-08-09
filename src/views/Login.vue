@@ -3,49 +3,38 @@
 import { ref } from 'vue';
 
 import router from '../router/index';
-import { login } from '../api/user';
+import { getUserVO, login } from '../api/user';
 import { ElNotification } from 'element-plus';
+import { useUserStore } from '../store/user';
 
 const username = ref("");
 
 const password = ref("");
 
+const userStore = useUserStore();
+
 async function handleLogin() {
 
-    try {
+    const res = await login({
+        username: username.value,
+        password: password.value
+    });
 
-        const res = await login({
-            username: username.value,
-            password: password.value
-        });
+    ElNotification({
+        type: "success",
+        message: "登录成功",
+    })
 
-        if (res.data.code !== 200) {
+    userStore.setToken(res.data.data.token);
 
-            ElNotification({
-                type: "error",
-                title: "登录失败",
-                message: res.data.message,
-            });
-            
-            return;
-        }
+    const user = await getUserVO();
 
-        ElNotification({
-            type: "success",
-            message: "登录成功",
-        })
+    console.log(user.data.data);
 
-        localStorage.setItem("token", res.data.data.token);
+    userStore.setUserInfo(user.data.data);
 
-        router.push('/details');
-        
-    } catch (error) {
-        ElNotification({
-            type: "error",
-            title: "服务器错误",
-        });
-    }
-
+    router.push('/details');
+    
 }
 
 function button_register() {

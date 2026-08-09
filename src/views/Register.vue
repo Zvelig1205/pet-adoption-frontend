@@ -14,37 +14,17 @@ const password = ref("");
 
 async function handleRegister() {
 
-    try {
+    const res = await register({
+        username: username.value,
+        password: password.value
+    });
 
-        const res = await register({
-            username: username.value,
-            password: password.value
-        });
+    ElNotification({
+        type: "success",
+        title: "注册成功",
+    })
 
-        if (res.data.code !== 200) {
-
-            ElNotification({
-                type: "error",
-                title: "注册失败",
-                message: res.data.message,
-            })
-
-            return;
-        }
-
-        ElNotification({
-            type: "success",
-            title: "注册成功",
-        })
-
-        router.push("/login");
-
-    } catch {
-        ElNotification({
-            type: "error",
-            title: "服务器错误",
-        });
-    }
+    router.push("/login");
 
 }
 

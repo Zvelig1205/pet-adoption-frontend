@@ -6,33 +6,20 @@ import { getUserVO } from '../api/user';
 
 import router from '../router/index';
 import { ElNotification } from 'element-plus';
+import { useUserStore } from '../store/user';
 
 const username = ref("");
 
+const userStore = useUserStore();
 
-onMounted(async () =>  {
-    try {
-        const res = await getUserVO();
 
-        if (res.data.code !== 200) {
-            ElNotification({
-                type: "error",
-                title: "获取用户信息失败",
-                message: res.data.message
-            });
+// onMounted(async () => {
+    
+//     const res = await getUserVO();
 
-            return;
-        }
+//     username.value = res.data.data.username;
 
-        username.value = res.data.data.username;
-    } catch {
-         ElNotification({
-            type: "error",
-            title: "服务器错误",
-        });
-    }
-
-})
+// })
 
 function toMyPets() {
 
@@ -57,11 +44,9 @@ function toPetHall() {
             <div>个人中心</div>
         </template>
 
-        <div class="user-info">
+        <div class="user-info" v-if="userStore.userInfo">
 
-            <!-- <el-avater>{{ username }}</el-avater> -->
-
-            <h2>这是{{ username }}家</h2>
+            <h2>这是{{ userStore.userInfo.username }}家</h2>
 
         </div>
 

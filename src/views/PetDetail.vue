@@ -14,20 +14,10 @@ const id = route.params.id;
 const pet = ref({});
 
 onMounted(async () => {
-
-    try {
-        
-        const res = await getPetById(id);
     
-        if (res.data.code !== 200) {
-            ElMessage.error(res.data.message);
-        } else {
-            pet.value = res.data.data;
-        }
+    const res = await getPetById(id);
 
-    } catch {
-        ElMessage.error("服务器异常");      
-    }
+    pet.value = res.data.data;
 
 })
 

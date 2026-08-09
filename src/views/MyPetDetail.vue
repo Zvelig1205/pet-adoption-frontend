@@ -15,19 +15,9 @@ const pet = ref({});
 
 onMounted(async () => {
 
-    try {
+    const res = await getMyPetDetail(id);
 
-        const res = await getMyPetDetail(id);
-
-        if (res.data.code !== 200) {
-            ElMessage.error(res.data.message);
-        } else {
-            pet.value = res.data.data;
-        }
-
-    } catch {
-        ElMessage.error("服务器异常");
-    }
+    pet.value = res.data.data;       
         
 })
 
@@ -55,9 +45,7 @@ async function abandon(id) {
 
         router.push("/details/pets");
 
-        
     } catch (e) {
-        console.log(e);
         ElMessage.info("已取消弃养");
     }
 
