@@ -25,13 +25,11 @@ async function handleLogin() {
         message: "登录成功",
     })
 
-    userStore.setToken(res.data.data.token);
+    const loginInfo = res.data.data;
+    
+    userStore.setToken(loginInfo.token);
 
-    const user = await getUserVO();
-
-    console.log(user.data.data);
-
-    userStore.setUserInfo(user.data.data);
+    userStore.setUserInfo(loginInfo.user);
 
     router.push('/details');
     

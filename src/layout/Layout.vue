@@ -4,7 +4,7 @@ import { onMounted } from 'vue';
 
 import router from '../router/index';
 import { useUserStore } from '../store/user';
-import { getUserVO } from '../api/user';
+import { getUserVO, logout } from '../api/user';
 
 const userStore = useUserStore();
 
@@ -18,9 +18,14 @@ onMounted(async () => {
     }
 })
 
-function logout() {
+async function handleLogout() {
+
+    await logout(userStore.token);
 
     userStore.logout();
+    router.push('/login');
+}
+function handleLogin() {
     router.push('/login');
 }
 
@@ -40,9 +45,14 @@ function logout() {
                 <el-menu-item index="/details">
                     个人中心
                 </el-menu-item>
-                <el-menu-item @click="logout">
+                <el-menu-item @click="handleLogout" v-if="userStore.token">
                     <el-button link>
                         退出登录
+                    </el-button>
+                </el-menu-item>     
+                <el-menu-item @click="handleLogin" v-if="!userStore.token">
+                    <el-button link>
+                        登录
                     </el-button>
                 </el-menu-item>            
                 

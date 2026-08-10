@@ -22,6 +22,21 @@ export function getPetById(id) {
 
 }
 
+export function getPetByName(name, page, size) {
+
+    return request.get(
+        "/pets/search",
+        {
+            params: {
+                name: name,
+                page: page,
+                size: size
+            }
+        }
+    );
+
+}
+
 export function getMyPets(page, size) {
 
     return request.get(
@@ -47,14 +62,14 @@ export function getMyPetDetail(id) {
 export function adoptPet(id) {
 
     return request.post(
-        `/pets/${id}/adopt`
+        `adopt/pets/${id}`
     );
 
 }
 export function abandonPet(id) {
 
     return request.delete(
-        `/pets/${id}/adopt`
+        `adopt/pets/${id}`
     );
 
 }

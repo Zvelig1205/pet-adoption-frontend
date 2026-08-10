@@ -21,6 +21,13 @@ export function register(data) {
 export function getUserVO() {
 
     return request.get(
-        "users/my"
+        "/users/my"
     );
+}
+
+export function logout(token) {
+    return request.post(
+        "/users/logout",
+        token
+    )
 }

@@ -1,26 +1,43 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { adoptPet, getUnadoptedPets } from '../api/pet';
+import { adoptPet, getUnadoptedPets, getPetByName } from '../api/pet';
 
 import router from '../router/index';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { Search } from "@element-plus/icons-vue";
 
 const petList = ref([]);
 const page = ref(1);
 const size = ref(10);
 const total = ref();
 
+function updateView(res) {
+    petList.value = res.records;
+
+    total.value = res.total;
+}
+
 async function loadPets() {
 
     try {
-            
-        const res = await getUnadoptedPets(
-            page.value,
-            size.value
-        )
 
-        updateView(res.data.data);
+        if (keyword.value) {
+            const res = await getPetByName(
+                keyword.value,
+                page.value,
+                size.value
+            );
+            updateView(res.data.data);
+        }
+        else {
+            const res = await getUnadoptedPets(
+                page.value,
+                size.value
+            );
+            updateView(res.data.data);
+        }
+
 
     } catch {
         ElMessage.error("请求失败");
@@ -28,10 +45,10 @@ async function loadPets() {
 
 }
 
-function updateView(res) {
-    petList.value = res.records;
+const keyword = ref("");
 
-    total.value = res.total;
+async function search() {
+    loadPets();
 }
 
 onMounted(() => {
@@ -92,6 +109,22 @@ function handleSizeChange(newSize) {
         <template #header>
             <div>宠物广场</div>
         </template>
+
+        <el-input 
+            v-model="keyword"
+            placeholder="请输入要查询的宠物名字"
+            style="width: 300px;"
+            @keyup.enter="search">
+
+            <template #append>
+
+                <el-button @click="search" circle>
+                    <el-icon><Search/></el-icon>
+                </el-button>
+                
+            </template>
+
+        </el-input>
 
         <el-table :data="petList" border>
 
