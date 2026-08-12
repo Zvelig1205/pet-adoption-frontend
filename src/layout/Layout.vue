@@ -19,11 +19,12 @@ onMounted(async () => {
 })
 
 async function handleLogout() {
-
-    await logout(userStore.token);
-
-    userStore.logout();
-    router.push('/login');
+    try {
+        await logout();
+    } finally {    
+        userStore.logout();
+        router.push('/login');
+    }
 }
 function handleLogin() {
     router.push('/login');

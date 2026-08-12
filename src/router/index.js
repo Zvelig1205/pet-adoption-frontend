@@ -8,6 +8,7 @@ import MyPet from "../views/MyPet.vue";
 import PetDetail from "../views/PetDetail.vue";
 import MyPetDetail from "../views/MyPetDetail.vue";
 import Layout from "../layout/layout.vue";
+import NotFound from "../views/NotFound.vue";
 
 
 const routes = [
@@ -17,12 +18,18 @@ const routes = [
 
         children: [
             {
-                path: `/details`,
-                component: My
+                path: "/details",
+                component: My,
+                meta: {
+                    requireAuth: true
+                }
             },
             {
-                path: `/details/pets`,
-                component: MyPet
+                path: "/details/pets",
+                component: MyPet,
+                meta: {
+                    requireAuth: true
+                }
             },
             {
                 path: "/pethall",
@@ -34,7 +41,10 @@ const routes = [
             },
             {
                 path: `/my/pet/:id`,
-                component: MyPetDetail
+                component: MyPetDetail,
+                meta: {
+                    requireAuth: true
+                }
             },
 
         ]
@@ -48,11 +58,25 @@ const routes = [
         path: "/register",
         component: Register
     },
+    {
+        path: "/:pathMatch(.*)*",
+        component: NotFound
+    }
 ];
 
 const router = createRouter({
     history: createWebHistory(),
     routes,
 });
+
+router.beforeEach((to) => {
+
+    const token = localStorage.getItem("token");
+
+    if (to.meta.requireAuth && !token) {
+        return "/login";
+    }
+
+})
 
 export default router;

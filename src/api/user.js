@@ -25,9 +25,8 @@ export function getUserVO() {
     );
 }
 
-export function logout(token) {
+export function logout() {
     return request.post(
-        "/users/logout",
-        token
+        "/users/logout"
     )
 }

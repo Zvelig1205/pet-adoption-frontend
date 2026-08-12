@@ -62,14 +62,14 @@ export function getMyPetDetail(id) {
 export function adoptPet(id) {
 
     return request.post(
-        `adopt/pets/${id}`
+        `pets/${id}/adopt`
     );
 
 }
 export function abandonPet(id) {
 
     return request.delete(
-        `adopt/pets/${id}`
+        `pets/${id}/adopt`
     );
 
 }

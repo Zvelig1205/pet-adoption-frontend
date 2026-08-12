@@ -48,6 +48,7 @@ async function loadPets() {
 const keyword = ref("");
 
 async function search() {
+    page.value = 1;
     loadPets();
 }
 
